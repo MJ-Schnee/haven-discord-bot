@@ -1,7 +1,23 @@
 {
     "Drizzling": {
-        "outside": "It is drizzling and you feel the rain on you",
-        "inside": "You can hear it drizzling outside, light pitter patter on the roof"
+        "outside": {
+            "1": "It is drizzling and you feel the rain on you",
+            "2": "Drizzling goes the rain on your head"
+        },
+        "inside": { 
+            "1": "You can hear it drizzling outside, light pitter patter on the roof",
+            "2": "The top of the roof goes pitter patter"
+        }
+    },
+    "Pouring": {
+        "outside": {
+            "1": "it's pouring on you",
+            "2": "you are getting soaked from the pouring rain"
+        },
+        "inside": {
+            "1": "The rain hitting the roof drowns out all sounds",
+            "2": "Looking out the windows you see nothing but rain"
+        }
     },
     "Sunny": {
         "outside": "You feel the sun's heat blaze on you",
