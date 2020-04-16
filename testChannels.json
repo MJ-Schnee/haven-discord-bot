@@ -1,0 +1,18 @@
+{
+    "Temple Plaza": {
+        "type": "outside",
+        "id": "658029658100596746"
+    },
+    "The Grove": {
+        "type": "outside",
+        "id": "658029680393453578"
+    },
+    "The Congregation": {
+        "type": "inside",
+        "id": "679034211323346964"
+    },
+    "Star Valley Inn": {
+        "type": "inside",
+        "id": "679034355862995045"
+    }
+}
