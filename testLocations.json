@@ -1,0 +1,14 @@
+{
+    "Temple Plaza": {
+        "type": "outside",
+        "channelID": "658029658100596746"
+    },
+    "The Grove": {
+        "type": "outside",
+        "channelID": "658029680393453578"
+    },
+    "The Congregation": {
+        "type": "inside",
+        "channelID": "679034211323346964"
+    }
+}

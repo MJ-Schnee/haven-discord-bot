@@ -1,0 +1,10 @@
+{
+    "Drizzling": {
+        "outside": "It is drizzling and you feel the rain on you",
+        "inside": "You can hear it drizzling outside, light pitter patter on the roof"
+    },
+    "Sunny": {
+        "outside": "You feel the sun's heat blaze on you",
+        "inside": "The sun shines through the windows"
+    }
+}
