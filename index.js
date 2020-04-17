@@ -24,7 +24,7 @@ commandFiles.forEach( file => {
 // Notify console when client is ready
 client.once('ready', () => {
 	console.log(`Connected as ${client.user.tag}`);
-	client.user.setActivity("Haven's favorite robot");
+	client.user.setActivity("Made in Haven", { type: 2 });
 });
 
 client.on('message', message => {	

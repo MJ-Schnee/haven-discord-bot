@@ -14,33 +14,8 @@ module.exports = {
     name: 'weather',
     description: 'Send Haven weather update to all text channels',
     execute(message, args) {
-        // Checks if adding a channel to send weather into
-		if(args[0] == "add") {
-            // Validate arguments
-            if(args.length == 3 && // Checks if all required arguments exist
-                message.mentions.channels.first().type == "text" && // Checks if text channel is mentioned
-                (args[2]=="outside" ||  args[2]=="inside")) { // Checks if inside/outside channel is specified
-
-                    const channelName = message.mentions.channels.first().name;
-                    const channelType = args[2];
-                    const channelID = message.mentions.channels.first().id;
-
-                    channelsJSON[channelName] = {
-                        "type": channelType,
-                        "id": channelID
-                    };
-
-                    console.log(channelsJSON);
-                    return message.channel.send(`${channelName} has been added to the list of weather channels!`);
-                    
-                    // File writing isn't working but it saves so long as the bot stays open
-                    //const fs = require('fs');
-                    //fs.writeFile('./test code/testChannels.json', channelsJSON, 'utf8', error => { if(error) console.error(error);});
-            }
-        }
-
-        // Checks if sending out a weather update and weather specified
-        else if(args[0] == "send" && args[1]) {
+        // Checks if sending out a weather update
+        if(args[0] == "send" && args[1]) {
             const weather = args[1];
 
             // Check if weather type exists
@@ -58,11 +33,6 @@ module.exports = {
             Object.keys(channelsJSON).forEach(channelKey => {
                 const channelRef = channelsJSON[channelKey];
                 const weatherDescription = randomProperty(weatherJSON[weather][channelRef.type]);
-                console.log(`=== ${channelKey} ===`);
-                console.log(`Type: ${channelRef.type}`);
-                console.log(`ID: ${channelRef.id}`);
-                console.log(`Weather: ${weatherDescription}`);
-                console.log();
                 // Fetches the channel based on its ID then sends the weather message to that channel
                 client.channels.fetch(channelRef.id).then(
                     weatherChannel => { 
@@ -73,6 +43,36 @@ module.exports = {
 
             return message.channel.send("The weather has been announced!");channelRef.type
         }
+
+        // Checks if adding a channel to send weather into
+		else if(args[0] == "add" && args[2]) {
+            // Validate arguments
+            if(message.mentions.channels.first().type == "text" && // Checks if text channel is mentioned
+                (args[2]=="outside" ||  args[2]=="inside")) { // Checks if inside/outside channel is specified
+
+                    const channelName = message.mentions.channels.first().name;
+                    const channelType = args[2];
+                    const channelID = message.mentions.channels.first().id;
+
+                    channelsJSON[channelName.toString()] = {
+                        "type": channelType.toString(),
+                        "id": channelID.toString()
+                    };
+
+                    console.log(channelsJSON);
+                    
+                    // File writing isn't working but it saves so long as the bot stays open
+                    const fs = require('fs');
+                    fs.writeFile('./test code/testChannels.json', JSON.stringify(channelsJSON, null, 4), 'utf8', error => { 
+                        if(error) 
+                            console.error(error);
+                        console.log("Channel added");
+                    });
+
+                    return message.channel.send(`${channelName} has been added to the list of weather channels!`);
+            }
+        }
+
         return message.reply(`invalid arguments for that command`);
     }
 }

@@ -1,5 +1,6 @@
-{ "outdoor1": { "type": "outside", "id": "700839381027782676" },
-  "outdoor2": { "type": "outside", "id": "700839399507886181" },
-  "outdoor3": { "type": "outside", "id": "700839411130171553" },
-  "indoor": { "type": "inside", "id": "700839351063412756" },
-  "indoor1": { "type": "inside", "id": "700839362807595009" } }
+{
+    "nope1": {
+        "type": "inside",
+        "id": "700839309393133619"
+    }
+}
