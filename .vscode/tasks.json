@@ -6,7 +6,7 @@
         {
             "label": "Node Build",
             "type": "shell",
-            "command": "node test",
+            "command": "node index",
             "group": {
                 "kind": "build",
                 "isDefault": true

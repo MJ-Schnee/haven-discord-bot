@@ -18,9 +18,5 @@
             "1": "The rain hitting the roof drowns out all sounds",
             "2": "Looking out the windows you see nothing but rain"
         }
-    },
-    "Sunny": {
-        "outside": "You feel the sun's heat blaze on you",
-        "inside": "The sun shines through the windows"
     }
 }
