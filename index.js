@@ -40,7 +40,7 @@ client.on('message', message => {
 	// Run command if it is valid
 	try {
 		client.commands.get(command).execute(message, args);
-		console.log(`"${message.author.username}" ran the command "${command}" with the arguments [${args}]`);
+		console.log(`"${message.author.username}" ran the command "${command}" with the arguments [${args}]\n`);
 	} catch (error) {
 		console.error(error);
 		message.reply('there was an error trying to execute that command!');

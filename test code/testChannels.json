@@ -1,18 +1,5 @@
-{
-    "Temple Plaza": {
-        "type": "outside",
-        "id": "658029658100596746"
-    },
-    "The Grove": {
-        "type": "outside",
-        "id": "658029680393453578"
-    },
-    "The Congregation": {
-        "type": "inside",
-        "id": "679034211323346964"
-    },
-    "Star Valley Inn": {
-        "type": "inside",
-        "id": "679034355862995045"
-    }
-}
+{ "outdoor1": { "type": "outside", "id": "700839381027782676" },
+  "outdoor2": { "type": "outside", "id": "700839399507886181" },
+  "outdoor3": { "type": "outside", "id": "700839411130171553" },
+  "indoor": { "type": "inside", "id": "700839351063412756" },
+  "indoor1": { "type": "inside", "id": "700839362807595009" } }

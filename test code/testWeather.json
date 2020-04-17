@@ -1,5 +1,5 @@
 {
-    "Drizzling": {
+    "drizzling": {
         "outside": {
             "1": "It is drizzling and you feel the rain on you",
             "2": "Drizzling goes the rain on your head"
@@ -9,7 +9,7 @@
             "2": "The top of the roof goes pitter patter"
         }
     },
-    "Pouring": {
+    "pouring": {
         "outside": {
             "1": "it's pouring on you",
             "2": "you are getting soaked from the pouring rain"
