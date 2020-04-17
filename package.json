@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/MJ-Schnee/haven-discord-bot/issues"
   },
-  "homepage": "https://github.com/MJ-Schnee/haven-discord-bot#readme"
+  "homepage": "https://github.com/MJ-Schnee/haven-discord-bot#readme",
+  "dependencies": {
+    "discord.js": "^12.1.1"
+  }
 }
