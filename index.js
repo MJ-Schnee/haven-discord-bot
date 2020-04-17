@@ -1,15 +1,27 @@
+// Node.js file system
+const fs = require('fs');
 // Set up Discord.js
 const Discord = require('discord.js');
 // Get values from the config
 const { botToken, botPrefix } = require('./config.json');
-// Access the weather and channels json
-let weatherJSON = require('./test code/testWeather.json');
-let channelsJSON = require('./test code/testChannels.json');
 
 // Create a new Discord client
 const client = new Discord.Client();
 
-// Notify console when client is ready once "ready" event occurs
+// Get the collection of available commands
+client.commands = new Discord.Collection();
+
+// Array of all JavaScript files in ./commands
+const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
+// Put each command into the collection
+commandFiles.forEach( file => {
+	const command = require(`./commands/${file}`);
+	// Set new item in the collection
+	// the key being the command name and its value being what actually gets run
+	client.commands.set(command.name, command);
+});
+
+// Notify console when client is ready
 client.once('ready', () => {
 	console.log(`Connected as ${client.user.tag}`);
 	client.user.setActivity("Haven's favorite robot");
@@ -25,26 +37,13 @@ client.on('message', message => {
 	// Set the first argument as the command
 	const command = args.shift().toLowerCase();
 
-	if(command === "weather") {
-		// Checks if adding a channel to send weather into
-		if(args[0] == "add") {
-				// Validate arguments
-				if(args.length == 3 && // Checks if all required arguments exist
-					message.mentions.channels.first().type == "text" && // Checks if text channel is mentioned
-					(args[2]=="outside" ||  args[2]=="inside")) { // Checks if inside/outside channel is specified
-						// This all works fine
-						message.channel.send(`Channel name: ${message.mentions.channels.first().name}`);
-						message.channel.send(`Channel type: ${args[2]}`);
-						message.channel.send(`Channel ID: ${message.mentions.channels.first().id}`);
-						//let data = JSON.parse(channelsJSON);
-						//data[]
-						return;
-				}
-		}
-		return  message.reply(`invalid arguments for that command`);
-	}
-	else {
-		return  message.reply(`that is not a valid command`);
+	// Run command if it is valid
+	try {
+		client.commands.get(command).execute(message, args);
+		console.log(`"${message.author.username}" ran the command "${command}" with the arguments [${args}]`);
+	} catch (error) {
+		console.error(error);
+		message.reply('there was an error trying to execute that command!');
 	}
 });
 
