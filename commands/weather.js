@@ -12,7 +12,6 @@ const weatherJSON = require('../test code/testWeather.json');
 
 // Writes the JSON data from the Node server onto the local files
 const updateLocalJSONs = () => {
-    console.log(`Before:\n${channelsJSON}`);
     // Node file system
     const fs = require('fs');
     // Write into the channels JSON
@@ -25,9 +24,8 @@ const updateLocalJSONs = () => {
     fs.writeFile('./test code/testWeather.json', JSON.stringify(weatherJSON, null, 4), 'utf8', error => { 
         if(error) 
             console.error(error);
-            console.log("Local file write successful for testWeather.json");
+            console.log("Local file write successful for testWeather.json\n");
     });
-    console.log(`After:\n${channelsJSON}\n\n`);
 };
 
 // Random JSON object picker
@@ -42,7 +40,7 @@ module.exports = {
     description: 'Send Haven weather update to all text channels',
     execute(message, args) {
         // Checks if sending out a weather update
-        if(args[0] == "send" && args[1]) {
+        if(args[0] == "send" && args.length == 2) {
             const weather = args[1];
 
             // Check if weather type exists
@@ -70,8 +68,30 @@ module.exports = {
             return message.channel.send("The weather has been announced!");channelRef.type
         }
 
+        // Checks if adding weather condition
+        else if(args[0] == "add" && args.length == 2) {
+            // Check if accidentally forgot arguments for adding channel
+            if(message.mentions.channels.size == 0 && 
+                message.mentions.users.size == 0 && 
+                message.mentions.roles.size == 0) {
+                    // Check if condition already exists
+                    if(weatherJSON[args[1]])
+                        return message.reply("that weather condition already exists!");
+
+                    // Make a blank template for that condition
+                    weatherJSON[args[1]] = {
+                        "inside": {},
+                        "outside": {}
+                    };
+
+                    updateLocalJSONs();
+
+                    return message.reply("weather condition has been added! Please remember to add descriptions for inside and outside");
+                }
+        }
+
         // Checks if adding a channel to send weather in
-		else if(args[0] == "add" && args[2]) {
+		else if(args[0] == "add" && args.length == 3) {
             // Validate arguments
             if(message.mentions.channels.first().type == "text" && // Checks if text channel is mentioned
                 (args[2]=="outside" ||  args[2]=="inside")) { // Checks if inside/outside channel is specified
@@ -86,21 +106,36 @@ module.exports = {
                 
                     updateLocalJSONs();
 
-                    return message.channel.send(`${channelName} has been added to the list of weather channels!`);
-            }
+                    return message.channel.send(`${message.mentions.channels.first()} has been added to the list of weather channels!`);
+                }
         }
 
-        // Checks if removing a channel to send weather in
-        else if(args[0] == "remove" && args[1]) {
-            // Validate arguments
-            if(message.mentions.channels.first().type == "text") {
+        // Checks if removing a channel or weather condition
+        else if(args[0] == "remove" && args.length == 2) {
+            // If there are no mentions, then the user is removing a weather condition
+            if(message.mentions.channels.size == 0 && 
+                message.mentions.users.size == 0 && 
+                message.mentions.roles.size == 0) {
+                // Check if condition exists
+                if( !weatherJSON[args[1]] )
+                    return message.reply("that weather condition doesn't exist!");
+
+                delete weatherJSON[args[1]]
+
+                updateLocalJSONs();
+
+                return message.reply("Weather condition has been added! Please remember to add descriptions for inside and outside");
+            }
+
+            // Check if removing text channel
+            if(message.mentions.channels.size == 1 && message.mentions.channels.first().type == "text") {
                 const channelName = message.mentions.channels.first().name;
 
                 delete channelsJSON[channelName.toString()];
 
                 updateLocalJSONs();
 
-                return message.channel.send(`${channelName} has been removed from the list of weather channels!`);
+                return message.channel.send(`${message.mentions.channels.first()} has been removed from the list of weather channels!`);
             }
         }
 
