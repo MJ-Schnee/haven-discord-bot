@@ -28,9 +28,17 @@ client.once('ready', () => {
 });
 
 client.on('message', message => {	
-	// Prevent bot from responding to its own messages and check if using prefix
-	// Check if first character of the message is the prefix
-	if(message.author.bot || message.content[0] != botPrefix) return;
+	// Prevent bot from responding to its own messages
+	// Check if using prefix
+	if(message.author.bot || message.content[0] != botPrefix)
+		return;
+
+	// Check if user has the proper role to use the bot
+	if((message.member.roles.cache.find(role => role.name === "The Council") === undefined) &&
+		(message.member.roles.cache.find(role => role.name === "Moderator") === undefined))
+			return;
+
+	
 
 	// Get all arguments in the command following the prefix
 	const args = message.content.slice(1).split(/ +/);
@@ -43,7 +51,7 @@ client.on('message', message => {
 		console.log(`"${message.author.username}" ran the command "${command}" with the arguments [${args}]\n`);
 	} catch (error) {
 		console.error(error);
-		message.reply('there was an error trying to execute that command!');
+		message.reply("Are you sure that's a command?");
 	}
 });
 
