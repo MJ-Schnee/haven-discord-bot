@@ -99,6 +99,7 @@ module.exports = {
                     const channelType = args[2];
                     const channelID = message.mentions.channels.first().id;
 
+                    // Set Node's JSON
                     channelsJSON[channelName.toString()] = {
                         "type": channelType.toString(),
                         "id": channelID.toString()
@@ -137,6 +138,35 @@ module.exports = {
 
                 return message.channel.send(`${message.mentions.channels.first()} has been removed from the list of weather channels!`);
             }
+        }
+
+        // Checks if describing a weather condition (adding onto inside/outside)
+        else if(args[0] == "describe" && args.length >= 4) {
+            // Check if weather condition exists
+            if(weatherJSON[args[1]]) {
+                // Check if inside/outside
+                if(args[2] == "inside" || args[2] == "outside") {
+                    let description = "";
+                    // Go through the rest of the arguments and append them to the description
+                    for(let i=3; i<args.length; i++) {
+                        description += ` ${args[i]}`;
+                    }
+                    // Get rid of leading space
+                    description = description.substring(1);
+
+                    const conditionLength = Object.keys(weatherJSON[args[1]][args[2]]).length+1;
+
+                    // Append description to Node's JSON
+                    weatherJSON[args[1]][args[2]][conditionLength] = description;
+
+                    updateLocalJSONs();
+
+                    return message.reply("the weather condition has been updated\n"+
+                    `"${args[1]}" while "${args[2]}" now includes "${description}"`);
+                }
+                return message.reply("please specify if it is inside/outside");
+            }
+            return message.reply("that weather condition does not exist");
         }
 
         return message.reply(`invalid arguments for that command`);
