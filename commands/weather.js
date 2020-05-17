@@ -3,7 +3,7 @@ const Discord = require('discord.js');
 // Create a new Discord client
 const client = new Discord.Client();
 // Get values from the config
-const { botToken } = require('../config.json');
+const { botToken, worldAnnouncementID } = require('../config.json');
 // Login to Discord with your app's token
 client.login(botToken);
 // Access the channels and weather JSONs
@@ -31,21 +31,24 @@ const updateLocalJSONs = () => {
 // Random JSON object picker
 // Thanks to https://stackoverflow.com/questions/2532218/pick-random-property-from-a-javascript-object
 const randomProperty = obj => {
-    var keys = Object.keys(obj);
+    let keys = Object.keys(obj);
     return obj[keys[ keys.length * Math.random() << 0]];
 };
 
 module.exports = {
     name: 'weather',
     description: 'Send Haven weather update to all text channels',
+    // Executes command given arguments
     execute(message, args) {
         // Checks if sending out a weather update
         if(args[0] == "send" && args.length == 2) {
             const weather = args[1];
 
-            // Check if weather type exists
-            if(!weatherJSON[weather])
-                return message.reply("that weather type doesn't have any descriptions!");
+            // Check if weather type exists and has inside and outside descriptions
+            if(weatherJSON[weather] === undefined || 
+                    Object.keys(weatherJSON[weather].inside).length === 0 || 
+                    Object.keys(weatherJSON[weather].outside).length === 0)
+                        return message.reply("that weather type doesn't have any descriptions!");
 
             // Send messages to all the channels
             Object.keys(channelsJSON).forEach(channelKey => {
@@ -55,7 +58,7 @@ module.exports = {
                 try {
                     client.channels.fetch(channelRef.id).then(
                         weatherChannel => { 
-                            weatherChannel.send(weatherDescription) 
+                            weatherChannel.send(weatherDescription);
                             console.log(`Messaged ${channelKey} the ${channelRef.type} weather: ${weatherDescription}`);
                         });
                 }
@@ -65,7 +68,7 @@ module.exports = {
                 };
             });
 
-            return message.channel.send("The weather has been announced!");channelRef.type
+            return message.channel.send("The weather has been announced!");
         }
 
         // Checks if adding weather condition
@@ -170,5 +173,43 @@ module.exports = {
         }
 
         return message.reply(`invalid arguments for that command`);
+    },
+    // Sends a random weather to all channels
+    // Used for the auto random weather
+    announceRandomWeather() {
+        // Get a random type of weather
+        let keys = Object.keys(weatherJSON);
+        let weather = keys[keys.length * Math.random() << 0];
+
+        // Makes sure weather type has descriptions
+        while (weatherJSON[weather] === undefined || 
+                Object.keys(weatherJSON[weather].inside).length === 0 || 
+                Object.keys(weatherJSON[weather].outside).length === 0) {
+                    weather = keys[keys.length * Math.random() << 0];
+        };
+        
+        // Send messages to all the channels
+        Object.keys(channelsJSON).forEach(channelKey => {
+            const channelRef = channelsJSON[channelKey];
+            const weatherDescription = randomProperty(weatherJSON[weather][channelRef.type]);
+            // Fetches the channel based on its ID then sends the weather message to that channel
+            try {
+                client.channels.fetch(channelRef.id).then(
+                    weatherChannel => { 
+                        weatherChannel.send(weatherDescription);
+                        console.log(`Messaged ${channelKey} the ${channelRef.type} weather: ${weatherDescription}`);
+                });
+            }
+            catch (error) { // Most likely the bot doesn't have access to that channel
+                console.error(error);
+                return client.channels.fetch(worldAnnouncementID).then( (channel) => {
+                    channel.send(`An error occurred trying to message the "${channelKey}" channel`);
+                });
+            };
+        });
+        
+        return client.channels.fetch(worldAnnouncementID).then( (channel) => {
+            channel.send("The weather has been announced!");
+        });
     }
 }

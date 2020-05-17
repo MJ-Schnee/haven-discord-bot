@@ -3,7 +3,7 @@ const fs = require('fs');
 // Set up Discord.js
 const Discord = require('discord.js');
 // Get values from the config
-const { botToken, botPrefix, seasonUpdateChannelID } = require('./config.json');
+const { botToken, botPrefix, worldAnnouncementID } = require('./config.json');
 
 // Create a new Discord client
 const client = new Discord.Client();
@@ -25,26 +25,36 @@ client.once('ready', () => {
 	console.log(`Connected as ${client.user.tag}`);
 	client.user.setActivity("Made in Haven", { type: 2 });
 
+	// Updates the weather at a random interval 12-24 hours
+	function autoSendWeather() {
+		let minWait = 43200000;
+		let maxWait = 86400000;
+		client.commands.get("weather").announceRandomWeather();
+		setTimeout(autoSendWeather, Math.floor(Math.random() * (maxWait - minWait + 1) + minWait));
+	}
+	autoSendWeather();
+
+	// Updates the season every 3 months
 	// Check every 24 hours to see if the season needs to be updated
 	setInterval( () => {
 		// Access the channel to update the season in
-		client.channels.fetch(seasonUpdateChannelID).then( (channel) => {
+		client.channels.fetch(worldAnnouncementID).then( (channel) => {
 			let today = new Date();
 			
 			// Check if it is the 1st of the month
 			if (today.getDate() == 1) {
 				// Jan, Feb, March - Spring
-				if ((today.getMonth() == 0) || (today.getMonth() == 1) || (today.getMonth() == 2))
-					channel.send("Happy Spring");
+				if (today.getMonth() == 0)
+					channel.send("The season has changed to Spring");
 				// April, May, June - Summer
-				else if ((today.getMonth() == 3) || (today.getMonth() == 4) || (today.getMonth() == 5))
-					channel.send("Happy Summer");
+				else if (today.getMonth() == 3)
+					channel.send("The season has changed to Summer");
 				// July, August, Sept - Autumn
-				else if ((today.getMonth() == 6) || (today.getMonth() == 7) || (today.getMonth() == 8))
-					channel.send("Happy Autumn");
+				else if (today.getMonth() == 6)
+					channel.send("The season has changed to Autumn");
 				// Oct, Nov, Dec - Winter
-				else if ((today.getMonth() == 9) || (today.getMonth() == 10) || (today.getMonth() == 11))
-					channel.send("Happy Fall");
+				else if (today.getMonth() == 9)
+					channel.send("The season has changed to Winter");
 			}			
 		});
 	}, 86400000);
@@ -61,8 +71,6 @@ client.on('message', message => {
 		(message.member.roles.cache.find(role => role.name === "Moderator") === undefined))
 			return;
 
-	
-
 	// Get all arguments in the command following the prefix
 	const args = message.content.slice(1).split(/ +/);
 	// Set the first argument as the command
@@ -78,5 +86,5 @@ client.on('message', message => {
 	}
 });
 
-// Login to Discord with your app's token
+// Login to Discord with app token
 client.login(botToken);
