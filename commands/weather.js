@@ -172,7 +172,43 @@ module.exports = {
             return message.reply("that weather condition does not exist");
         }
 
-        return message.reply(`invalid arguments for that command`);
+        // Checks if listing conditions or channels or descriptions
+        else if(args[0] == "list" && args.length == 2) {
+            // Listing all weather conditions
+            if(args[1] == "conditions"){
+                let sendMessage = "Weather conditions: \n";
+                let weatherKeys = Object.keys(weatherJSON);
+                for(let i=0; i<weatherKeys.length; i++) {
+                    sendMessage += `- ${weatherKeys[i]}\n`;
+                }
+                return message.channel.send(sendMessage);
+            }
+            // Listing all channels to send weather in
+            else if(args[1] == "channels"){
+                let sendMessage = "Channels to message: \n";
+                let channelKeys = Object.keys(channelsJSON);
+                for(let i=0; i<channelKeys.length; i++) {
+                    sendMessage += `- ${channelKeys[i]}\n`;
+                }
+                return message.channel.send(sendMessage);
+            }
+        }
+
+        // Checks if listing descriptions of condition
+        else if(args[0] == "list" && args.length == 3) {
+            let weatherKeys = Object.keys(weatherJSON);
+            // See if weather condition exists
+            if(weatherJSON[args[1]] !== undefined && weatherJSON[args[1]][args[2]] !== undefined){
+                let sendMessage = `Descriptions for ${args[2]} ${args[1]}: \n`;
+                let descriptionKeys = Object.values(weatherJSON[args[1]][args[2]]);
+                for(let i=0; i<descriptionKeys.length; i++) {
+                    sendMessage += `${i}- ${descriptionKeys[i]}\n`;
+                }
+                return message.channel.send(sendMessage);
+            }
+        }
+
+        return message.reply("invalid arguments for that command");
     },
     // Sends a random weather to all channels
     // Used for the auto random weather
