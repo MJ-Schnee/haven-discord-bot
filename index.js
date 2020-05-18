@@ -29,8 +29,10 @@ client.once('ready', () => {
 	function autoSendWeather() {
 		let minWait = 43200000;
 		let maxWait = 86400000;
+		let randomTime = Math.random() * (maxWait - minWait + 1) + minWait;
 		client.commands.get("weather").announceRandomWeather();
-		setTimeout(autoSendWeather, Math.floor(Math.random() * (maxWait - minWait + 1) + minWait));
+		console.log(`\nAuto announcing new weather in ${randomTime/1000/60/60} hours`);
+		setTimeout(autoSendWeather, randomTime);
 	}
 	autoSendWeather();
 
@@ -82,7 +84,7 @@ client.on('message', message => {
 		console.log(`"${message.author.username}" ran the command "${command}" with the arguments [${args}]\n`);
 	} catch (error) {
 		console.error(error);
-		message.reply("Are you sure that's a command?");
+		message.reply("are you sure that's a command?").catch( (error) => {console.error(error)});;
 	}
 });
 

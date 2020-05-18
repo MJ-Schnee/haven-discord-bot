@@ -58,17 +58,17 @@ module.exports = {
                 try {
                     client.channels.fetch(channelRef.id).then(
                         weatherChannel => { 
-                            weatherChannel.send(weatherDescription);
+                            weatherChannel.send(weatherDescription).catch( (error) => {console.error(error)});
                             console.log(`Messaged ${channelKey} the ${channelRef.type} weather: ${weatherDescription}`);
                         });
                 }
                 catch (error) { // Most likely the bot doesn't have access to that channel
                     console.error(error);
-                    message.reply(`An error occurred trying to message the "${channelKey}" channel`);
+                    message.reply(`an error occurred trying to message the "${channelKey}" channel`);
                 };
             });
 
-            return message.channel.send("The weather has been announced!");
+            return message.channel.send("The weather has been announced!").catch( (error) => {console.error(error)});
         }
 
         // Checks if adding weather condition
@@ -110,7 +110,7 @@ module.exports = {
                 
                     updateLocalJSONs();
 
-                    return message.channel.send(`${message.mentions.channels.first()} has been added to the list of weather channels!`);
+                    return message.channel.send(`${message.mentions.channels.first()} has been added to the list of weather channels!`).catch( (error) => {console.error(error)});
                 }
         }
 
@@ -128,7 +128,7 @@ module.exports = {
 
                 updateLocalJSONs();
 
-                return message.reply("Weather condition has been added! Please remember to add descriptions for inside and outside");
+                return message.reply("weather condition has been added! Please remember to add descriptions for inside and outside");
             }
 
             // Check if removing text channel
@@ -139,7 +139,24 @@ module.exports = {
 
                 updateLocalJSONs();
 
-                return message.channel.send(`${message.mentions.channels.first()} has been removed from the list of weather channels!`);
+                return message.channel.send(`${message.mentions.channels.first()} has been removed from the list of weather channels!`).catch( (error) => {console.error(error)});
+            }
+        }
+
+        // Checks if removing a weather condition description
+        else if(args[0] == "remove" && args.length == 4) {
+            // Check if weather type and description exists
+            if(weatherJSON[args[1]] !== undefined && 
+                    weatherJSON[args[1]][args[2]] !== undefined && 
+                    weatherJSON[args[1]][args[2]][args[3]] !== undefined) {
+                        // Set the wish-to-be-deleted item to the last item in the list
+                        // Then delete the final item so that the numbering doesn't get messed up
+                        weatherJSON[args[1]][args[2]][args[3]] = weatherJSON[args[1]][args[2]][Object.keys(weatherJSON).length - 1];
+                        delete weatherJSON[args[1]][args[2]][Object.keys(weatherJSON).length - 1];
+
+                        updateLocalJSONs();
+
+                        return message.reply("that weather condition's description has been deleted!");
             }
         }
 
@@ -181,7 +198,7 @@ module.exports = {
                 for(let i=0; i<weatherKeys.length; i++) {
                     sendMessage += `- ${weatherKeys[i]}\n`;
                 }
-                return message.channel.send(sendMessage);
+                return message.channel.send(sendMessage).catch( (error) => {console.error(error)});
             }
             // Listing all channels to send weather in
             else if(args[1] == "channels"){
@@ -190,7 +207,7 @@ module.exports = {
                 for(let i=0; i<channelKeys.length; i++) {
                     sendMessage += `- ${channelKeys[i]}\n`;
                 }
-                return message.channel.send(sendMessage);
+                return message.channel.send(sendMessage).catch( (error) => {console.error(error)});
             }
         }
 
@@ -202,9 +219,9 @@ module.exports = {
                 let sendMessage = `Descriptions for ${args[2]} ${args[1]}: \n`;
                 let descriptionKeys = Object.values(weatherJSON[args[1]][args[2]]);
                 for(let i=0; i<descriptionKeys.length; i++) {
-                    sendMessage += `${i}- ${descriptionKeys[i]}\n`;
+                    sendMessage += `${i+1} - ${descriptionKeys[i]}\n`;
                 }
-                return message.channel.send(sendMessage);
+                return message.channel.send(sendMessage).catch( (error) => {console.error(error)});
             }
         }
 
@@ -223,29 +240,29 @@ module.exports = {
                 Object.keys(weatherJSON[weather].outside).length === 0) {
                     weather = keys[keys.length * Math.random() << 0];
         };
+
+        console.log(`\nAuto weather selected: ${weather}`);
         
         // Send messages to all the channels
         Object.keys(channelsJSON).forEach(channelKey => {
             const channelRef = channelsJSON[channelKey];
             const weatherDescription = randomProperty(weatherJSON[weather][channelRef.type]);
             // Fetches the channel based on its ID then sends the weather message to that channel
-            try {
-                client.channels.fetch(channelRef.id).then(
-                    weatherChannel => { 
-                        weatherChannel.send(weatherDescription);
-                        console.log(`Messaged ${channelKey} the ${channelRef.type} weather: ${weatherDescription}`);
-                });
-            }
-            catch (error) { // Most likely the bot doesn't have access to that channel
+            client.channels.fetch(channelRef.id).then(
+                weatherChannel => { 
+                    weatherChannel.send(weatherDescription).catch( (error) => {console.error(error)});
+                    console.log(`Auto messaged ${channelKey} the ${channelRef.type} weather: ${weatherDescription}`);
+            }).catch( (error) => { 
+                // Most likely the bot doesn't have access to that channel
                 console.error(error);
                 return client.channels.fetch(worldAnnouncementID).then( (channel) => {
-                    channel.send(`An error occurred trying to message the "${channelKey}" channel`);
+                    channel.send(`An error occurred trying to message the "${channelKey}" channel`).catch( (error) => {console.error(error)});
                 });
-            };
+            });
         });
         
         return client.channels.fetch(worldAnnouncementID).then( (channel) => {
-            channel.send("The weather has been announced!");
+            channel.send("The weather has been announced!").catch( (error) => {console.error(error)});
         });
     }
 }
