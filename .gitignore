@@ -3,6 +3,7 @@ config.json
 
 # VS Code specifics
 .vscode
+.eslintrc.json
 
 # Logs
 logs

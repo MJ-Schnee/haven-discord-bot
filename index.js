@@ -14,7 +14,7 @@ client.commands = new Discord.Collection();
 // Array of all JavaScript files in ./commands
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 // Put each command into the collection
-commandFiles.forEach( file => {
+commandFiles.forEach(file => {
 	const command = require(`./commands/${file}`);
 	// Set new item in the collection
 	// the key being the command name and its value being what actually gets run
@@ -27,22 +27,22 @@ client.once('ready', () => {
 
 	// Updates the weather at a random interval 12-24 hours
 	function autoSendWeather() {
-		let minWait = 43200000;
-		let maxWait = 86400000;
-		let randomTime = Math.random() * (maxWait - minWait + 1) + minWait;
+		const minWait = 43200000;
+		const maxWait = 86400000;
+		const randomTime = Math.random() * (maxWait - minWait + 1) + minWait;
 		client.commands.get("weather").announceRandomWeather();
-		console.log(`\nAuto announcing new weather in ${randomTime/1000/60/60} hours`);
+		console.log(`\nAuto announcing new weather in ${randomTime / 1000 / 60 / 60} hours`);
 		setTimeout(autoSendWeather, randomTime);
 	}
 	autoSendWeather();
 
 	// Updates the season every 3 months
 	// Check every 24 hours to see if the season needs to be updated
-	setInterval( () => {
+	setInterval(() => {
 		// Access the channel to update the season in
-		client.channels.fetch(worldAnnouncementID).then( (channel) => {
-			let today = new Date();
-			
+		client.channels.fetch(worldAnnouncementID).then((channel) => {
+			const today = new Date();
+
 			// Check if it is the 1st of the month
 			if (today.getDate() == 1) {
 				// Jan, Feb, March - Spring
@@ -57,12 +57,12 @@ client.once('ready', () => {
 				// Oct, Nov, Dec - Winter
 				else if (today.getMonth() == 9)
 					channel.send("The season has changed to Winter");
-			}			
+			}
 		});
 	}, 86400000);
 });
 
-client.on('message', message => {	
+client.on('message', message => {
 	// Prevent bot from responding to its own messages
 	// Check if using prefix
 	if(message.author.bot || message.content[0] != botPrefix)
@@ -70,8 +70,8 @@ client.on('message', message => {
 
 	// Check if user has the proper role to use the bot
 	if((message.member.roles.cache.find(role => role.name === "The Council") === undefined) &&
-		(message.member.roles.cache.find(role => role.name === "Moderator") === undefined))
-			return;
+			(message.member.roles.cache.find(role => role.name === "Moderator") === undefined))
+		return;
 
 	// Get all arguments in the command following the prefix
 	const args = message.content.slice(1).split(/ +/);
@@ -82,9 +82,10 @@ client.on('message', message => {
 	try {
 		client.commands.get(command).execute(message, args);
 		console.log(`"${message.author.username}" ran the command "${command}" with the arguments [${args}]\n`);
-	} catch (error) {
+	}
+	catch (error) {
 		console.error(error);
-		message.reply("are you sure that's a command?").catch( (error) => {console.error(error)});;
+		message.reply("are you sure that's a command?").catch((sendError) => {console.error(sendError);});
 	}
 });
 
