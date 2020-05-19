@@ -91,3 +91,17 @@ client.on('message', message => {
 
 // Login to Discord with app token
 client.login(botToken);
+
+
+// Keeping the server alive on Glitch by pinging itsef every ~4.6 minutes
+const http = require('http');
+const express = require('express');
+const app = express();
+app.get("/", (request, response) => {
+	console.log(`Ping recieved: ${Date.now()}`);
+	response.sendStatus(200);
+});
+app.listen(process.env.PORT);
+setInterval(() => {
+	http.get(`http://${process.env.PROJECT_DOMAIN}.glitch.me/`);
+}, 280000);

@@ -18,9 +18,13 @@
   },
   "homepage": "https://github.com/MJ-Schnee/haven-discord-bot#readme",
   "dependencies": {
-    "discord.js": "^12.1.1"
+    "discord.js": "^12.1.1",
+    "express": "^4.17.1"
   },
   "devDependencies": {
     "eslint": "^7.0.0"
+  },
+  "engines": {
+    "node": "^13.7.0"
   }
 }

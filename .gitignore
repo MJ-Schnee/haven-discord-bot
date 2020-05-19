@@ -1,5 +1,6 @@
 # Bot config info
 config.json
+.env
 
 # VS Code specifics
 .vscode
