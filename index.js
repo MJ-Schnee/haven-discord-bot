@@ -1,9 +1,12 @@
+// Environment variables
+require('dotenv').config();
 // Node.js file system
 const fs = require('fs');
 // Set up Discord.js
 const Discord = require('discord.js');
 // Get values from the config
-const { botToken, botPrefix, worldAnnouncementID } = require('./config.json');
+const botPrefix = process.env.PREFIX;
+const worldAnnouncementID = process.env.WORLD_ANNOUNCEMENT_ID;
 
 // Create a new Discord client
 const client = new Discord.Client();
@@ -23,14 +26,14 @@ commandFiles.forEach(file => {
 
 client.once('ready', () => {
 	console.log(`Connected as ${client.user.tag}`);
-	client.user.setActivity("Made in Haven", { type: 2 });
+	client.user.setActivity('Made in Haven', { type: 2 });
 
 	// Updates the weather at a random interval 12-24 hours
 	function autoSendWeather() {
 		const minWait = 43200000;
 		const maxWait = 86400000;
 		const randomTime = Math.random() * (maxWait - minWait + 1) + minWait;
-		client.commands.get("weather").announceRandomWeather();
+		client.commands.get('weather').announceRandomWeather();
 		console.log(`\nAuto announcing new weather in ${randomTime / 1000 / 60 / 60} hours`);
 		setTimeout(autoSendWeather, randomTime);
 	}
@@ -46,17 +49,21 @@ client.once('ready', () => {
 			// Check if it is the 1st of the month
 			if (today.getDate() == 1) {
 				// Jan, Feb, March - Spring
-				if (today.getMonth() == 0)
-					channel.send("The season has changed to Spring");
+				if (today.getMonth() == 0) {
+					channel.send('The season has changed to Spring');
+				}
 				// April, May, June - Summer
-				else if (today.getMonth() == 3)
-					channel.send("The season has changed to Summer");
+				else if (today.getMonth() == 3) {
+					channel.send('The season has changed to Summer');
+				}
 				// July, August, Sept - Autumn
-				else if (today.getMonth() == 6)
-					channel.send("The season has changed to Autumn");
+				else if (today.getMonth() == 6) {
+					channel.send('The season has changed to Autumn');
+				}
 				// Oct, Nov, Dec - Winter
-				else if (today.getMonth() == 9)
-					channel.send("The season has changed to Winter");
+				else if (today.getMonth() == 9) {
+					channel.send('The season has changed to Winter');
+				}
 			}
 		});
 	}, 86400000);
@@ -65,13 +72,15 @@ client.once('ready', () => {
 client.on('message', message => {
 	// Prevent bot from responding to its own messages
 	// Check if using prefix
-	if(message.author.bot || message.content[0] != botPrefix)
+	if(message.author.bot || message.content[0] != botPrefix) {
 		return;
+	}
 
 	// Check if user has the proper role to use the bot
-	if((message.member.roles.cache.find(role => role.name === "The Council") === undefined) &&
-			(message.member.roles.cache.find(role => role.name === "Moderator") === undefined))
+	if((message.member.roles.cache.find(role => role.name === 'The Council') === undefined) &&
+			(message.member.roles.cache.find(role => role.name === 'Moderator') === undefined)) {
 		return;
+	}
 
 	// Get all arguments in the command following the prefix
 	const args = message.content.slice(1).split(/ +/);
@@ -85,9 +94,11 @@ client.on('message', message => {
 	}
 	catch (error) {
 		console.error(error);
-		message.reply("are you sure that's a command?").catch((sendError) => {console.error(sendError);});
+		message.reply('are you sure that\'s a command?').catch((sendError) => {
+			console.error(sendError);
+		});
 	}
 });
 
 // Login to Discord with app token
-client.login(botToken);
+client.login();

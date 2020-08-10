@@ -1,9 +1,8 @@
-# Bot config info
-config.json
+# Environment Variables
+.env
 
 # VS Code specifics
 .vscode
-.eslintrc.json
 
 # Logs
 logs
