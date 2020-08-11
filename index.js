@@ -1,5 +1,12 @@
 // Environment variables
 require('dotenv').config();
+// Firebase
+const firebaseAdmin = require('firebase-admin');
+const firebaseServiceAccount = JSON.parse(process.env.FIREBASE_PRIVATE_KEY);
+firebaseAdmin.initializeApp({
+	credential: firebaseAdmin.credential.cert(firebaseServiceAccount),
+	databaseURL: process.env.FIREBASE_DATABASE_URL,
+});
 // Node.js file system
 const fs = require('fs');
 // Set up Discord.js
