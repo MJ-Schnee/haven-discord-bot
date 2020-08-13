@@ -86,18 +86,32 @@ module.exports = {
 			if (message.mentions.channels.size == 0 &&
 			message.mentions.users.size == 0 &&
 			message.mentions.roles.size == 0) {
-				if (weatherJSON[args[1]]) {
+				let status = 0;
+				await weatherConditions.doc(args[1]).get()
+					.then(snapshot => {
+						if (snapshot.exists) {
+							return status = 2;
+						}
+						else {
+							weatherConditions.doc(args[1]).set({
+								inside: [],
+								outside: [],
+							});
+							return status = 1;
+						}
+					})
+					.catch(error => {
+						return console.error(error);
+					});
+
+				switch (status) {
+				case 0:
+					return message.reply('an error occurred, please try again!');
+				case 1:
+					return message.reply(`weather \`${args[1]}\` condition has been added! Please remember to add descriptions for inside and outside`);
+				case 2:
 					return message.reply('that weather condition already exists!');
 				}
-
-				weatherJSON[args[1]] = {
-					'inside': {},
-					'outside': {},
-				};
-
-				updateLocalJSONs();
-
-				return message.reply('weather condition has been added! Please remember to add descriptions for inside and outside');
 			}
 		}
 		else if (args[0] == 'add' && args.length == 3) {
