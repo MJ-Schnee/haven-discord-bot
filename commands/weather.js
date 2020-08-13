@@ -33,6 +33,52 @@ const randomProperty = obj => {
 	return obj[keys[ keys.length * Math.random() << 0]];
 };
 
+const test = async () => {
+	const args = [];
+	args[1] = 'raining';
+	args[2] = 'inside';
+	args[3] = '1';
+
+	let status = 0;
+	await weatherConditions.doc(args[1]).get()
+		.then(async weatherCondition => {
+			if (weatherCondition.exists) {
+				if (!weatherCondition.data()[args[2]][args[3]]) {
+					return status = 2;
+				}
+				await weatherConditions.doc(args[1]).update({
+					[args[2]]: admin.firestore.FieldValue.arrayRemove(weatherCondition.data()[args[2]][args[3]]),
+				});
+				return status = 1;
+			}
+		})
+		.catch(console.error);
+
+	switch (status) {
+		case 0:
+			return console.log('an error has occurred, please try again!');
+		case 1:
+			return console.log('that weather description has been deleted!');
+		case 2:
+			return console.log('that weather condition doesn\'t exist!');
+	}
+
+	// let arg2Exists = await weatherConditions.doc(args[1]).get().data().args[2].exists;
+	// console.log(`arg2Exists ${arg2Exists}`);
+
+	// let arg3Exists = await weatherConditions.doc(args[1]).get().data().args[2][args[3]].exists;
+	// console.log(`arg3Exists ${arg3Exists}`);
+
+	// if (await weatherConditions.doc(args[1]).get().exists &&
+	// await weatherConditions.doc(args[1]).data().args[2].exists &&
+	// await weatherConditions.doc(args[1]).data().args[2][args[3]].exists) {
+	// 	await weatherConditions.doc(args[1]).data().args[2][args[3]].delete()
+	// 		.then(console.log('that weather condition\'s description has been deleted!'))
+	// 		.catch(console.error);
+	// }
+};
+test();
+
 module.exports = {
 	name: 'weather',
 	description: 'Send Haven weather update to all text channels',
@@ -115,21 +161,21 @@ module.exports = {
 					});
 
 				switch (status) {
-				case 0:
-					return message.reply('an error occurred, please try again!')
-						.catch((error) => {
-							console.error(error);
-						});
-				case 1:
-					return message.reply(`weather \`${args[1]}\` condition has been added! Please remember to add descriptions for inside and outside`)
-						.catch((error) => {
-							console.error(error);
-						});
-				case 2:
-					return message.reply('that weather condition already exists!')
-						.catch((error) => {
-							console.error(error);
-						});
+					case 0:
+						return message.reply('an error occurred, please try again!')
+							.catch((error) => {
+								console.error(error);
+							});
+					case 1:
+						return message.reply(`weather \`${args[1]}\` condition has been added! Please remember to add descriptions for inside and outside`)
+							.catch((error) => {
+								console.error(error);
+							});
+					case 2:
+						return message.reply('that weather condition already exists!')
+							.catch((error) => {
+								console.error(error);
+							});
 				}
 			}
 		}
@@ -182,21 +228,21 @@ module.exports = {
 					});
 
 				switch (status) {
-				case 0:
-					return message.reply('an error occurred, please try again!')
-						.catch((error) => {
-							console.error(error);
-						});
-				case 1:
-					return message.reply('weather condition has been removed!')
-						.catch((error) => {
-							console.error(error);
-						});
-				case 2:
-					return message.reply('that weather condition doesn\'t exist!')
-						.catch((error) => {
-							console.error(error);
-						});
+					case 0:
+						return message.reply('an error occurred, please try again!')
+							.catch((error) => {
+								console.error(error);
+							});
+					case 1:
+						return message.reply('weather condition has been removed!')
+							.catch((error) => {
+								console.error(error);
+							});
+					case 2:
+						return message.reply('that weather condition doesn\'t exist!')
+							.catch((error) => {
+								console.error(error);
+							});
 				}
 			}
 
@@ -221,34 +267,47 @@ module.exports = {
 					});
 
 				switch (status) {
-				case 0:
-					return message.reply('an error occurred, please try again!')
-						.catch((error) => {
-							console.error(error);
-						});
-				case 1:
-					return message.channel.send(`${message.mentions.channels.first()} has been removed from the list of weather channels!`)
-						.catch((error) => {
-							console.error(error);
-						});
-				case 2:
-					return message.reply('that channel doesn\'t exist!')
-						.catch((error) => {
-							console.error(error);
-						});
+					case 0:
+						return message.reply('an error occurred, please try again!')
+							.catch((error) => {
+								console.error(error);
+							});
+					case 1:
+						return message.channel.send(`${message.mentions.channels.first()} has been removed from the list of weather channels!`)
+							.catch((error) => {
+								console.error(error);
+							});
+					case 2:
+						return message.reply('that channel doesn\'t exist!')
+							.catch((error) => {
+								console.error(error);
+							});
 				}
 			}
 		}
 		else if (args[0] == 'remove' && args.length == 4) {
-			if (weatherJSON[args[1]] !== undefined &&
-			weatherJSON[args[1]][args[2]] !== undefined &&
-			weatherJSON[args[1]][args[2]][args[3]] !== undefined) {
-				weatherJSON[args[1]][args[2]][args[3]] = weatherJSON[args[1]][args[2]][Object.keys(weatherJSON).length - 1];
-				delete weatherJSON[args[1]][args[2]][Object.keys(weatherJSON).length - 1];
+			let status = 0;
+			await weatherConditions.doc(args[1]).get()
+				.then(async weatherCondition => {
+					if (weatherCondition.exists) {
+						if (!weatherCondition.data()[args[2]][args[3]]) {
+							return status = 2;
+						}
+						await weatherConditions.doc(args[1]).update({
+							[args[2]]: admin.firestore.FieldValue.arrayRemove(weatherCondition.data()[args[2]][args[3]]),
+						});
+						return status = 1;
+					}
+				})
+				.catch(console.error);
 
-				updateLocalJSONs();
-
-				return message.reply('that weather condition\'s description has been deleted!');
+			switch (status) {
+				case 0:
+					return message.reply('an error occurred, please try again!');
+				case 1:
+					return message.reply('that weather condition\'s description has been deleted!');
+				case 2:
+					return console.log('that weather condition doesn\'t exist!');
 			}
 		}
 		else if (args[0] == 'describe' && args.length >= 4) {
