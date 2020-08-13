@@ -1,10 +1,20 @@
 require('dotenv').config();
 const Discord = require('discord.js');
+const admin = require('firebase-admin');
+const serviceAccount = JSON.parse(process.env.FIREBASE_PRIVATE_KEY);
+admin.initializeApp({
+	credential: admin.credential.cert(serviceAccount),
+	databaseURL: process.env.FIREBASE_DATABASE_URL,
+});
+const database = admin.firestore();
+const fs = require('fs');
 const channelsJSON = require('../data/channelsData.json');
 const weatherJSON = require('../data/weatherData.json');
-const fs = require('fs');
 
 const client = new Discord.Client();
+const channels = database.collection('channels');
+const weatherConditions = database.collection('weather-conditions');
+const timedEvents = database.collection('timed-events');
 const worldAnnouncementID = process.env.WORLD_ANNOUNCEMENT_ID;
 
 const updateLocalJSONs = () => {
@@ -26,32 +36,45 @@ const randomProperty = obj => {
 module.exports = {
 	name: 'weather',
 	description: 'Send Haven weather update to all text channels',
-	execute(message, args) {
+	async execute(message, args) {
 		if(args[0] == 'send' && args.length == 2) {
-			const weather = args[1];
-
-			if (weatherJSON[weather] === undefined ||
-			Object.keys(weatherJSON[weather].inside).length === 0 ||
-			Object.keys(weatherJSON[weather].outside).length === 0) {
+			let weatherCondition;
+			await weatherConditions.doc(args[1]).get()
+				.then(snapshot => weatherCondition = snapshot)
+				.catch(error => {
+					console.error(error);
+					return message.reply('an error occurred, please try again!');
+				});
+			if (!weatherCondition.exists) {
+				return message.reply('that weather condition doesn\'t exist!');
+			}
+			if (weatherCondition.data().inside.size === 0 || weatherCondition.data().outside.size === 0) {
 				return message.reply('that weather type doesn\'t have any descriptions!');
 			}
 
-			Object.keys(channelsJSON).forEach(channelKey => {
-				const channelRef = channelsJSON[channelKey];
-				const weatherDescription = randomProperty(weatherJSON[weather][channelRef.type]);
-				try {
-					client.channels.fetch(channelRef.id).then(
-						weatherChannel => {
-							weatherChannel.send(weatherDescription).catch((error) => {
-								console.error(error);
-							});
-							console.log(`Messaged ${channelKey} the ${channelRef.type} weather: ${weatherDescription}`);
-						});
-				}
-				catch (error) {
+			let channelsList;
+			await channels.get()
+				.then(snapshot => channelsList = snapshot)
+				.catch(error => {
 					console.error(error);
-					message.reply(`an error occurred trying to message the "${channelKey}" channel`);
-				}
+					return message.reply('an error occurred, please try again!');
+				});
+			if (channelsList.size === 0) {
+				return message.reply('there are no channels to message!');
+			}
+
+			channelsList.forEach(channel => {
+				const description = randomProperty(weatherCondition.data()[channel.data().type]);
+				client.channels.fetch(channel.data().id)
+					.then(weatherChannel => {
+						weatherChannel.send(description)
+							.catch(console.error);
+						console.log(`Messaged ${channel.id} the ${channel.data().type} weather: ${description}`);
+					})
+					.catch((error) => {
+						console.error(error);
+						return message.reply('an error occurred, please try again!');
+					});
 			});
 
 			return message.channel.send('The weather has been announced!')

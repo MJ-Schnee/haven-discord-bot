@@ -1,12 +1,6 @@
 require('dotenv').config();
 const fs = require('fs');
 const Discord = require('discord.js');
-const firebaseAdmin = require('firebase-admin');
-const firebaseServiceAccount = JSON.parse(process.env.FIREBASE_PRIVATE_KEY);
-firebaseAdmin.initializeApp({
-	credential: firebaseAdmin.credential.cert(firebaseServiceAccount),
-	databaseURL: process.env.FIREBASE_DATABASE_URL,
-});
 
 const botPrefix = process.env.PREFIX;
 const worldAnnouncementID = process.env.WORLD_ANNOUNCEMENT_ID;
@@ -24,37 +18,37 @@ client.once('ready', () => {
 	console.log(`Connected as ${client.user.tag}`);
 	client.user.setActivity('Made in Haven', { type: 2 });
 
-	function autoSendWeather() {
-		const minWait = 12 * 3600000;
-		const maxWait = 24 * 3600000;
-		const randomTime = Math.random() * (maxWait - minWait + 1) + minWait;
-		client.commands.get('weather').announceRandomWeather();
-		console.log(`\nAuto announcing new weather in ${randomTime / 3600000} hours`);
-		setTimeout(autoSendWeather, randomTime);
-	}
-	autoSendWeather();
+	// function autoSendWeather() {
+	// 	const minWait = 12 * 3600000;
+	// 	const maxWait = 24 * 3600000;
+	// 	const randomTime = Math.random() * (maxWait - minWait + 1) + minWait;
+	// 	client.commands.get('weather').announceRandomWeather();
+	// 	console.log(`\nAuto announcing new weather in ${randomTime / 3600000} hours`);
+	// 	setTimeout(autoSendWeather, randomTime);
+	// }
+	// autoSendWeather();
 
-	setInterval(() => {
-		client.channels.fetch(worldAnnouncementID)
-			.then((channel) => {
-				const today = new Date();
+	// setInterval(() => {
+	// 	client.channels.fetch(worldAnnouncementID)
+	// 		.then((channel) => {
+	// 			const today = new Date();
 
-				if (today.getDate() == 1) {
-					if (today.getMonth() == 0) {
-						channel.send('The season has changed to Spring');
-					}
-					else if (today.getMonth() == 3) {
-						channel.send('The season has changed to Summer');
-					}
-					else if (today.getMonth() == 6) {
-						channel.send('The season has changed to Autumn');
-					}
-					else if (today.getMonth() == 9) {
-						channel.send('The season has changed to Winter');
-					}
-				}
-			});
-	}, 86400000);
+	// 			if (today.getDate() == 1) {
+	// 				if (today.getMonth() == 0) {
+	// 					channel.send('The season has changed to Spring');
+	// 				}
+	// 				else if (today.getMonth() == 3) {
+	// 					channel.send('The season has changed to Summer');
+	// 				}
+	// 				else if (today.getMonth() == 6) {
+	// 					channel.send('The season has changed to Autumn');
+	// 				}
+	// 				else if (today.getMonth() == 9) {
+	// 					channel.send('The season has changed to Winter');
+	// 				}
+	// 			}
+	// 		});
+	// }, 86400000);
 });
 
 client.on('message', message => {
