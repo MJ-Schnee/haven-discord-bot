@@ -43,13 +43,22 @@ module.exports = {
 				.then(snapshot => weatherCondition = snapshot)
 				.catch(error => {
 					console.error(error);
-					return message.reply('an error occurred, please try again!');
+					return message.reply('an error occurred, please try again!')
+						.catch((error) => {
+							console.error(error);
+						});
 				});
 			if (!weatherCondition.exists) {
-				return message.reply('that weather condition doesn\'t exist!');
+				return message.reply('that weather condition doesn\'t exist!')
+					.catch((error) => {
+						console.error(error);
+					});
 			}
 			if (weatherCondition.data().inside.size === 0 || weatherCondition.data().outside.size === 0) {
-				return message.reply('that weather type doesn\'t have any descriptions!');
+				return message.reply('that weather type doesn\'t have any descriptions!')
+					.catch((error) => {
+						console.error(error);
+					});
 			}
 
 			let channelsList;
@@ -88,7 +97,7 @@ module.exports = {
 			message.mentions.roles.size == 0) {
 				let status = 0;
 				await weatherConditions.doc(args[1]).get()
-					.then(snapshot => {
+					.then(async snapshot => {
 						if (snapshot.exists) {
 							return status = 2;
 						}
@@ -96,8 +105,9 @@ module.exports = {
 							weatherConditions.doc(args[1]).set({
 								inside: [],
 								outside: [],
-							});
-							return status = 1;
+							})
+								.then(status = 1)
+								.catch(console.error);
 						}
 					})
 					.catch(error => {
@@ -106,11 +116,20 @@ module.exports = {
 
 				switch (status) {
 				case 0:
-					return message.reply('an error occurred, please try again!');
+					return message.reply('an error occurred, please try again!')
+						.catch((error) => {
+							console.error(error);
+						});
 				case 1:
-					return message.reply(`weather \`${args[1]}\` condition has been added! Please remember to add descriptions for inside and outside`);
+					return message.reply(`weather \`${args[1]}\` condition has been added! Please remember to add descriptions for inside and outside`)
+						.catch((error) => {
+							console.error(error);
+						});
 				case 2:
-					return message.reply('that weather condition already exists!');
+					return message.reply('that weather condition already exists!')
+						.catch((error) => {
+							console.error(error);
+						});
 				}
 			}
 		}
@@ -132,7 +151,10 @@ module.exports = {
 					});
 
 				if (error) {
-					return message.channel.send('an error occurred, please try again!');
+					return message.channel.send('an error occurred, please try again!')
+						.catch((error) => {
+							console.error(error);
+						});
 				}
 
 				return message.channel.send(`${message.mentions.channels.first()} has been added to the list of (${channelType}) weather channels!`)
@@ -143,28 +165,78 @@ module.exports = {
 			if (message.mentions.channels.size == 0 &&
 			message.mentions.users.size == 0 &&
 			message.mentions.roles.size == 0) {
-				if (!weatherJSON[args[1]]) {
-					return message.reply('that weather condition doesn\'t exist!');
+				let status = 0;
+				await weatherConditions.doc(args[1]).get()
+					.then(async snapshot => {
+						if (!snapshot.exists) {
+							return status = 2;
+						}
+						else {
+							await weatherConditions.doc(args[1]).delete()
+								.then(status = 1)
+								.catch(console.error);
+						}
+					})
+					.catch(error => {
+						return console.error(error);
+					});
+
+				switch (status) {
+				case 0:
+					return message.reply('an error occurred, please try again!')
+						.catch((error) => {
+							console.error(error);
+						});
+				case 1:
+					return message.reply('weather condition has been removed!')
+						.catch((error) => {
+							console.error(error);
+						});
+				case 2:
+					return message.reply('that weather condition doesn\'t exist!')
+						.catch((error) => {
+							console.error(error);
+						});
 				}
-
-				delete weatherJSON[args[1]];
-
-				updateLocalJSONs();
-
-				return message.reply('weather condition has been added! Please remember to add descriptions for inside and outside');
 			}
 
 			if (message.mentions.channels.size == 1 && message.mentions.channels.first().type == 'text') {
 				const channelName = message.mentions.channels.first().name;
 
-				delete channelsJSON[channelName.toString()];
-
-				updateLocalJSONs();
-
-				return message.channel.send(`${message.mentions.channels.first()} has been removed from the list of weather channels!`)
-					.catch((error) => {
-						console.error(error);
+				let status = 0;
+				await channels.doc(channelName.toString()).get()
+					.then(async snapshot => {
+						console.log(snapshot.data().type);
+						if (!snapshot.exists) {
+							return status = 2;
+						}
+						else {
+							await channels.doc(channelName.toString()).delete()
+								.then(status = 1)
+								.catch(console.error);
+						}
+					})
+					.catch(error => {
+						return console.error(error);
 					});
+
+				switch (status) {
+				case 0:
+					return message.reply('an error occurred, please try again!')
+						.catch((error) => {
+							console.error(error);
+						});
+				case 1:
+					return message.channel.send(`${message.mentions.channels.first()} has been removed from the list of weather channels!`)
+						.catch((error) => {
+							console.error(error);
+						});
+				case 2:
+					return message.reply('that channel doesn\'t exist!')
+						.catch((error) => {
+							console.error(error);
+						});
+				}
 			}
 		}
 		else if (args[0] == 'remove' && args.length == 4) {
