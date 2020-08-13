@@ -121,16 +121,22 @@ module.exports = {
 				const channelType = args[2];
 				const channelID = message.mentions.channels.first().id;
 
-				channelsJSON[channelName.toString()] = {
-					'type': channelType.toString(),
-					'id': channelID.toString(),
-				};
+				let error = false;
+				await channels.doc(channelName.toString()).set({
+					id: channelID.toString(),
+					type: channelType.toString(),
+				})
+					.catch(e => {
+						console.error(e);
+						return error = true;
+					});
 
-				updateLocalJSONs();
+				if (error) {
+					return message.channel.send('an error occurred, please try again!');
+				}
 
-				return message.channel.send(`${message.mentions.channels.first()} has been added to the list of weather channels!`).catch((error) => {
-					console.error(error);
-				});
+				return message.channel.send(`${message.mentions.channels.first()} has been added to the list of (${channelType}) weather channels!`)
+					.catch(console.error);
 			}
 		}
 		else if (args[0] == 'remove' && args.length == 2) {

@@ -43,6 +43,7 @@
 		"space-unary-ops": "warn",
 		"spaced-comment": "warn",
 		"yoda": "warn",
-		"no-unused-vars": "warn"
+		"no-unused-vars": "warn",
+		"eqeqeq": "warn"
 	}
 }
