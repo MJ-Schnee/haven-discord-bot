@@ -33,32 +33,32 @@ const test = async () => {
 	// 			console.error(error);
 	// 		});
 	// }
-	const args = [];
-	args[1] = 'raining';
-	args[2] = 'inside';
-	let status = 0;
-	let sendMessage = `Descriptions for ${args[2]} ${args[1]}: \n`;
-	await weatherConditions.doc(args[1]).get()
-		.then(async weatherCondition => {
-			if (weatherCondition.exists) {
-				for (let i = 0; i < await weatherCondition.data()[args[2]].length; i++) {
-					sendMessage += `${i} - ${weatherCondition.data()[args[2]][i]}\n`;
-				}
-				status = 1;
-			}
-			else {
-				return status = 2;
-			}
-		})
-		.catch(console.error);
-	switch (status) {
-		case 0:
-			return console.log('error');
-		case 1:
-			return console.log(sendMessage);
-		case 2:
-			return console.log('invalid condition');
-	}
+	// const args = [];
+	// args[1] = 'raining';
+	// args[2] = 'inside';
+	// let status = 0;
+	// let sendMessage = `Descriptions for ${args[2]} ${args[1]}: \n`;
+	// await weatherConditions.doc(args[1]).get()
+	// 	.then(async weatherCondition => {
+	// 		if (weatherCondition.exists) {
+	// 			for (let i = 0; i < await weatherCondition.data()[args[2]].length; i++) {
+	// 				sendMessage += `${i} - ${weatherCondition.data()[args[2]][i]}\n`;
+	// 			}
+	// 			status = 1;
+	// 		}
+	// 		else {
+	// 			return status = 2;
+	// 		}
+	// 	})
+	// 	.catch(console.error);
+	// switch (status) {
+	// 	case 0:
+	// 		return console.log('error');
+	// 	case 1:
+	// 		return console.log(sendMessage);
+	// 	case 2:
+	// 		return console.log('invalid condition');
+	// }
 
 	// let sendMessage = 'Weather conditions: \n';
 	// const weatherKeys = [];
@@ -386,19 +386,32 @@ module.exports = {
 		else if (args[0] == 'list' && args.length == 3) {
 			let status = 0;
 			let sendMessage = `Descriptions for ${args[2]} ${args[1]}: \n`;
-			await weatherConditions.doc(args[1]).get()
-				.then(async weatherCondition => {
-					if (weatherCondition.exists) {
-						for (let i = 0; i < await weatherCondition.data()[args[2]].length; i++) {
-							sendMessage += `${i} - ${weatherCondition.data()[args[2]][i]}\n`;
+			if (args[2] === 'inside' || args[2] === 'outside') {
+				await weatherConditions.doc(args[1]).get()
+					.then(async weatherCondition => {
+						if (weatherCondition.exists) {
+							const weatherConditionSize = await weatherCondition.data()[args[2]].length;
+
+							if (weatherConditionSize === 0) {
+								status = 1;
+								return sendMessage = `${args[2]} ${args[1]} has no descriptions yet!`;
+							}
+
+							for (let i = 0; i < weatherConditionSize; i++) {
+								sendMessage += `${i} - ${await weatherCondition.data()[args[2]][i]}\n`;
+							}
+							status = 1;
 						}
-						status = 1;
-					}
-					else {
-						return status = 2;
-					}
-				})
-				.catch(console.error);
+						else {
+							return status = 2;
+						}
+					})
+					.catch(console.error);
+			}
+			else {
+				return message.reply('please specify inside or outside conditions!');
+			}
+
 			switch (status) {
 				case 0:
 					return message.reply('an error occurred, please try again!');
