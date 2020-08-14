@@ -21,6 +21,59 @@ const randomProperty = obj => {
 	return obj[keys[ keys.length * Math.random() << 0]];
 };
 
+const test = async () => {
+	// if (weatherJSON[args[1]] !== undefined && weatherJSON[args[1]][args[2]] !== undefined) {
+	// 	let sendMessage = `Descriptions for ${args[2]} ${args[1]}: \n`;
+	// 	const descriptionKeys = Object.values(weatherJSON[args[1]][args[2]]);
+	// 	for (let i = 0; i < descriptionKeys.length; i++) {
+	// 		sendMessage += `${i + 1} - ${descriptionKeys[i]}\n`;
+	// 	}
+	// 	return message.channel.send(sendMessage)
+	// 		.catch((error) => {
+	// 			console.error(error);
+	// 		});
+	// }
+	const args = [];
+	args[1] = 'raining';
+	args[2] = 'inside';
+	let status = 0;
+	let sendMessage = `Descriptions for ${args[2]} ${args[1]}: \n`;
+	await weatherConditions.doc(args[1]).get()
+		.then(async weatherCondition => {
+			if (weatherCondition.exists) {
+				for (let i = 0; i < await weatherCondition.data()[args[2]].length; i++) {
+					sendMessage += `${i} - ${weatherCondition.data()[args[2]][i]}\n`;
+				}
+				status = 1;
+			}
+			else {
+				return status = 2;
+			}
+		})
+		.catch(console.error);
+	switch (status) {
+		case 0:
+			return console.log('error');
+		case 1:
+			return console.log(sendMessage);
+		case 2:
+			return console.log('invalid condition');
+	}
+
+	// let sendMessage = 'Weather conditions: \n';
+	// const weatherKeys = [];
+	// await weatherConditions.get()
+	// 	.then(snapshot => {
+	// 		snapshot.forEach(doc =>{
+	// 			weatherKeys.push([doc.id]);
+	// 		});
+	// 	});
+	// for (let i = 0; i < weatherKeys.length; i++) {
+	// 	sendMessage += `- ${weatherKeys[i]}\n`;
+	// }
+};
+test();
+
 module.exports = {
 	name: 'weather',
 	description: 'Send Haven weather update to all text channels',
@@ -331,16 +384,28 @@ module.exports = {
 			}
 		}
 		else if (args[0] == 'list' && args.length == 3) {
-			if (weatherJSON[args[1]] !== undefined && weatherJSON[args[1]][args[2]] !== undefined) {
-				let sendMessage = `Descriptions for ${args[2]} ${args[1]}: \n`;
-				const descriptionKeys = Object.values(weatherJSON[args[1]][args[2]]);
-				for (let i = 0; i < descriptionKeys.length; i++) {
-					sendMessage += `${i + 1} - ${descriptionKeys[i]}\n`;
-				}
-				return message.channel.send(sendMessage)
-					.catch((error) => {
-						console.error(error);
-					});
+			let status = 0;
+			let sendMessage = `Descriptions for ${args[2]} ${args[1]}: \n`;
+			await weatherConditions.doc(args[1]).get()
+				.then(async weatherCondition => {
+					if (weatherCondition.exists) {
+						for (let i = 0; i < await weatherCondition.data()[args[2]].length; i++) {
+							sendMessage += `${i} - ${weatherCondition.data()[args[2]][i]}\n`;
+						}
+						status = 1;
+					}
+					else {
+						return status = 2;
+					}
+				})
+				.catch(console.error);
+			switch (status) {
+				case 0:
+					return message.reply('an error occurred, please try again!');
+				case 1:
+					return message.reply(sendMessage);
+				case 2:
+					return message.reply('that weather condition doesn\'t exist!');
 			}
 		}
 
