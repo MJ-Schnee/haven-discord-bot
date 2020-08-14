@@ -44,6 +44,6 @@
 		"spaced-comment": "warn",
 		"yoda": "warn",
 		"no-unused-vars": "warn",
-		"eqeqeq": "warn"
+		"eqeqeq": ["warn", "smart"]
 	}
 }

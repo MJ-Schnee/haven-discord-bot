@@ -33,52 +33,6 @@ const randomProperty = obj => {
 	return obj[keys[ keys.length * Math.random() << 0]];
 };
 
-const test = async () => {
-	const args = [];
-	args[1] = 'raining';
-	args[2] = 'inside';
-	args[3] = '1';
-
-	let status = 0;
-	await weatherConditions.doc(args[1]).get()
-		.then(async weatherCondition => {
-			if (weatherCondition.exists) {
-				if (!weatherCondition.data()[args[2]][args[3]]) {
-					return status = 2;
-				}
-				await weatherConditions.doc(args[1]).update({
-					[args[2]]: admin.firestore.FieldValue.arrayRemove(weatherCondition.data()[args[2]][args[3]]),
-				});
-				return status = 1;
-			}
-		})
-		.catch(console.error);
-
-	switch (status) {
-		case 0:
-			return console.log('an error has occurred, please try again!');
-		case 1:
-			return console.log('that weather description has been deleted!');
-		case 2:
-			return console.log('that weather condition doesn\'t exist!');
-	}
-
-	// let arg2Exists = await weatherConditions.doc(args[1]).get().data().args[2].exists;
-	// console.log(`arg2Exists ${arg2Exists}`);
-
-	// let arg3Exists = await weatherConditions.doc(args[1]).get().data().args[2][args[3]].exists;
-	// console.log(`arg3Exists ${arg3Exists}`);
-
-	// if (await weatherConditions.doc(args[1]).get().exists &&
-	// await weatherConditions.doc(args[1]).data().args[2].exists &&
-	// await weatherConditions.doc(args[1]).data().args[2][args[3]].exists) {
-	// 	await weatherConditions.doc(args[1]).data().args[2][args[3]].delete()
-	// 		.then(console.log('that weather condition\'s description has been deleted!'))
-	// 		.catch(console.error);
-	// }
-};
-test();
-
 module.exports = {
 	name: 'weather',
 	description: 'Send Haven weather update to all text channels',
@@ -307,30 +261,54 @@ module.exports = {
 				case 1:
 					return message.reply('that weather condition\'s description has been deleted!');
 				case 2:
-					return console.log('that weather condition doesn\'t exist!');
+					return message.reply('that weather condition doesn\'t exist!');
 			}
 		}
 		else if (args[0] == 'describe' && args.length >= 4) {
-			if (weatherJSON[args[1]]) {
-				if (args[2] == 'inside' || args[2] == 'outside') {
-					let description = '';
-					for (let i = 3; i < args.length; i++) {
-						description += ` ${args[i]}`;
+			let status = 0;
+			await weatherConditions.doc(args[1]).get()
+				.then(async weatherCondition => {
+					if (weatherCondition.exists) {
+						if (args[2] == 'inside' || args[2] == 'outside') {
+							let description = '';
+							for (let i = 3; i < args.length; i++) {
+								description += ` ${args[i]}`;
+							}
+							description = description.substring(1);
+
+							if (weatherCondition.data()[args[2]].includes(description)) {
+								return status = 4;
+							}
+
+							await weatherConditions.doc(args[1]).update({
+								[args[2]]: admin.firestore.FieldValue.arrayUnion(description),
+							})
+								.then(status = 1)
+								.catch(console.error);
+						}
+						else {
+							return status = 3;
+						}
 					}
-					description = description.substring(1);
+					else {
+						return status = 2;
+					}
 
-					const conditionLength = Object.keys(weatherJSON[args[1]][args[2]]).length + 1;
+				})
+				.catch(console.error);
 
-					weatherJSON[args[1]][args[2]][conditionLength] = description;
-
-					updateLocalJSONs();
-
-					return message.reply('the weather condition has been updated\n' +
-					`"${args[1]}" while "${args[2]}" now includes "${description}"`);
-				}
-				return message.reply('please specify if it is inside/outside');
+			switch (status) {
+				case 0:
+					return message.reply('an error occurred, please try again!');
+				case 1:
+					return message.reply(`the "${args[1]}" while "${args[2]}" weather condition has a new description!`);
+				case 2:
+					return message.reply('that weather condition doesn\'t exist!');
+				case 3:
+					return message.reply('please specify if it is inside/outside');
+				case 4:
+					return message.reply('that description is already on that weather condition!');
 			}
-			return message.reply('that weather condition does not exist');
 		}
 		else if (args[0] == 'list' && args.length == 2) {
 			if (args[1] == 'conditions') {
