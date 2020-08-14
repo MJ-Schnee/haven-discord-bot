@@ -7,7 +7,6 @@ admin.initializeApp({
 	databaseURL: process.env.FIREBASE_DATABASE_URL,
 });
 const database = admin.firestore();
-const fs = require('fs');
 const channelsJSON = require('../data/channelsData.json');
 const weatherJSON = require('../data/weatherData.json');
 
@@ -16,17 +15,6 @@ const channels = database.collection('channels');
 const weatherConditions = database.collection('weather-conditions');
 const timedEvents = database.collection('timed-events');
 const worldAnnouncementID = process.env.WORLD_ANNOUNCEMENT_ID;
-
-const updateLocalJSONs = () => {
-	fs.writeFile('./test code/testChannels.json', JSON.stringify(channelsJSON, null, 4), 'utf8', error => {
-		if(error) console.error(error);
-		console.log('Local file write successful for testChannels.json');
-	});
-	fs.writeFile('./test code/testWeather.json', JSON.stringify(weatherJSON, null, 4), 'utf8', error => {
-		if(error) console.error(error);
-		console.log('Local file write successful for testWeather.json\n');
-	});
-};
 
 const randomProperty = obj => {
 	const keys = Object.keys(obj);
@@ -313,25 +301,33 @@ module.exports = {
 		else if (args[0] == 'list' && args.length == 2) {
 			if (args[1] == 'conditions') {
 				let sendMessage = 'Weather conditions: \n';
-				const weatherKeys = Object.keys(weatherJSON);
+				const weatherKeys = [];
+				await weatherConditions.get()
+					.then(snapshot => {
+						snapshot.forEach(doc =>{
+							weatherKeys.push([doc.id]);
+						});
+					});
 				for (let i = 0; i < weatherKeys.length; i++) {
 					sendMessage += `- ${weatherKeys[i]}\n`;
 				}
-				return message.channel.send(sendMessage)
-					.catch((error) => {
-						console.error(error);
-					});
+
+				return message.channel.send(sendMessage).catch(console.error);
 			}
 			else if (args[1] == 'channels') {
-				let sendMessage = 'Channels to message: \n';
-				const channelKeys = Object.keys(channelsJSON);
+				let sendMessage = 'Weather channels: \n';
+				const channelKeys = [];
+				await channels.get()
+					.then(snapshot => {
+						snapshot.forEach(doc =>{
+							channelKeys.push([doc.id]);
+						});
+					});
 				for (let i = 0; i < channelKeys.length; i++) {
 					sendMessage += `- ${channelKeys[i]}\n`;
 				}
-				return message.channel.send(sendMessage)
-					.catch((error) => {
-						console.error(error);
-					});
+
+				return message.channel.send(sendMessage).catch(console.error);
 			}
 		}
 		else if (args[0] == 'list' && args.length == 3) {
