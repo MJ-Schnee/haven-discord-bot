@@ -7,8 +7,6 @@ admin.initializeApp({
 	databaseURL: process.env.FIREBASE_DATABASE_URL,
 });
 const database = admin.firestore();
-const channelsJSON = require('../data/channelsData.json');
-const weatherJSON = require('../data/weatherData.json');
 
 const client = new Discord.Client();
 const channels = database.collection('channels');
@@ -22,55 +20,6 @@ const randomProperty = obj => {
 };
 
 const test = async () => {
-	// if (weatherJSON[args[1]] !== undefined && weatherJSON[args[1]][args[2]] !== undefined) {
-	// 	let sendMessage = `Descriptions for ${args[2]} ${args[1]}: \n`;
-	// 	const descriptionKeys = Object.values(weatherJSON[args[1]][args[2]]);
-	// 	for (let i = 0; i < descriptionKeys.length; i++) {
-	// 		sendMessage += `${i + 1} - ${descriptionKeys[i]}\n`;
-	// 	}
-	// 	return message.channel.send(sendMessage)
-	// 		.catch((error) => {
-	// 			console.error(error);
-	// 		});
-	// }
-	// const args = [];
-	// args[1] = 'raining';
-	// args[2] = 'inside';
-	// let status = 0;
-	// let sendMessage = `Descriptions for ${args[2]} ${args[1]}: \n`;
-	// await weatherConditions.doc(args[1]).get()
-	// 	.then(async weatherCondition => {
-	// 		if (weatherCondition.exists) {
-	// 			for (let i = 0; i < await weatherCondition.data()[args[2]].length; i++) {
-	// 				sendMessage += `${i} - ${weatherCondition.data()[args[2]][i]}\n`;
-	// 			}
-	// 			status = 1;
-	// 		}
-	// 		else {
-	// 			return status = 2;
-	// 		}
-	// 	})
-	// 	.catch(console.error);
-	// switch (status) {
-	// 	case 0:
-	// 		return console.log('error');
-	// 	case 1:
-	// 		return console.log(sendMessage);
-	// 	case 2:
-	// 		return console.log('invalid condition');
-	// }
-
-	// let sendMessage = 'Weather conditions: \n';
-	// const weatherKeys = [];
-	// await weatherConditions.get()
-	// 	.then(snapshot => {
-	// 		snapshot.forEach(doc =>{
-	// 			weatherKeys.push([doc.id]);
-	// 		});
-	// 	});
-	// for (let i = 0; i < weatherKeys.length; i++) {
-	// 	sendMessage += `- ${weatherKeys[i]}\n`;
-	// }
 };
 test();
 
@@ -424,38 +373,52 @@ module.exports = {
 
 		return message.reply('invalid arguments for that command');
 	},
-	announceRandomWeather() {
-		const keys = Object.keys(weatherJSON);
-		let weather = keys[keys.length * Math.random() << 0];
-
-		while (weatherJSON[weather] === undefined ||
-		Object.keys(weatherJSON[weather].inside).length === 0 ||
-		Object.keys(weatherJSON[weather].outside).length === 0) {
-			weather = keys[keys.length * Math.random() << 0];
-		}
-
-		console.log(`\nAuto weather selected: ${weather}`);
-
-		Object.keys(channelsJSON).forEach(channelKey => {
-			const channelRef = channelsJSON[channelKey];
-			const weatherDescription = randomProperty(weatherJSON[weather][channelRef.type]);
-			client.channels.fetch(channelRef.id).then(
-				weatherChannel => {
-					weatherChannel.send(weatherDescription)
-						.catch((error) => {
-							console.error(error);
-						});
-					console.log(`Auto messaged ${channelKey} the ${channelRef.type} weather: ${weatherDescription}`);
-				})
-				.catch((error) => {
-					console.error(error);
-					return client.channels.fetch(worldAnnouncementID).then((channel) => {
-						channel.send(`An error occurred trying to message the "${channelKey}" channel`).catch((sendError) => {
-							console.error(sendError);
-						});
-					});
+	async announceRandomWeather() {
+		let weatherCondition;
+		await weatherConditions.get()
+			.then(collectionSnapshot => {
+				const collectionSize = collectionSnapshot.size;
+				const conditionIndex = Math.floor(Math.random() * Math.floor(collectionSize));
+				console.log(conditionIndex);
+				let i = 0;
+				collectionSnapshot.forEach(async documentSnapshot => {
+					if (i === conditionIndex) {
+						weatherCondition = documentSnapshot;
+					}
+					else {
+						i++;
+					}
 				});
-		});
+			})
+			.catch(console.error);
+		console.log(`Auto selected weather condition: ${weatherCondition.id}`);
+
+		await channels.get()
+			.then(collectionSnapshot => {
+				collectionSnapshot.forEach(async documentSnapshot => {
+					if (await documentSnapshot.data().type === 'inside' || await documentSnapshot.data().type === 'outside') {
+						const weatherDescription = randomProperty(weatherCondition.data()[await documentSnapshot.data().type]);
+						console.log(`Weather Description: ${weatherDescription}`);
+						const channelID = await documentSnapshot.data().id;
+						await client.channels.fetch(channelID)
+							.then(weatherChannel => {
+								weatherChannel.send(weatherDescription)
+									.catch(console.error);
+								console.log(`Auto messaged ${documentSnapshot.id} the ${documentSnapshot.data().type} weather: ${weatherDescription}`);
+							})
+							.catch(async error => {
+								console.error(error);
+								client.channels.fetch(worldAnnouncementID)
+									.then((channel) => {
+										channel.send(`An error occurred trying to message the "${documentSnapshot.id}" channel`)
+											.catch(console.error);
+									});
+							})
+							.catch(console.error);
+					}
+				});
+			})
+			.catch(console.error);
 
 		return client.channels.fetch(worldAnnouncementID)
 			.then((channel) => {
