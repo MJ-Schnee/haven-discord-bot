@@ -21,7 +21,7 @@ client.once('ready', () => {
 });
 
 client.on('message', message => {
-	if(message.author.bot || message.content[0] != botPrefix) {
+	if(message.author.bot || message.content[0] !== botPrefix) {
 		return;
 	}
 

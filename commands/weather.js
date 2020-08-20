@@ -24,16 +24,14 @@ module.exports = {
 	name: 'weather',
 	description: 'Send Haven weather update to all text channels',
 	async execute(message, args) {
-		if(args[0] == 'send' && args.length == 2) {
+		if(args[0] === 'send' && args.length === 2) {
 			let weatherCondition;
 			await weatherConditions.doc(args[1]).get()
 				.then(snapshot => weatherCondition = snapshot)
 				.catch(error => {
 					console.error(error);
 					return message.reply('an error occurred, please try again!')
-						.catch((error) => {
-							console.error(error);
-						});
+						.catch(console.error);
 				});
 			if (!weatherCondition.exists) {
 				return message.reply('that weather condition doesn\'t exist!')
@@ -78,10 +76,10 @@ module.exports = {
 					console.error(error);
 				});
 		}
-		else if (args[0] == 'add' && args.length == 2) {
-			if (message.mentions.channels.size == 0 &&
-			message.mentions.users.size == 0 &&
-			message.mentions.roles.size == 0) {
+		else if (args[0] === 'add' && args.length === 2) {
+			if (message.mentions.channels.size === 0 &&
+			message.mentions.users.size === 0 &&
+			message.mentions.roles.size === 0) {
 				let status = 0;
 				await weatherConditions.doc(args[1]).get()
 					.then(async snapshot => {
@@ -120,9 +118,9 @@ module.exports = {
 				}
 			}
 		}
-		else if (args[0] == 'add' && args.length == 3) {
-			if (message.mentions.channels.first().type == 'text' &&
-			(args[2] == 'outside' || args[2] == 'inside')) {
+		else if (args[0] === 'add' && args.length === 3) {
+			if (message.mentions.channels.first().type === 'text' &&
+			(args[2] === 'outside' || args[2] === 'inside')) {
 				const channelName = message.mentions.channels.first().name;
 				const channelType = args[2];
 				const channelID = message.mentions.channels.first().id;
@@ -139,19 +137,17 @@ module.exports = {
 
 				if (error) {
 					return message.channel.send('an error occurred, please try again!')
-						.catch((error) => {
-							console.error(error);
-						});
+						.catch(console.error);
 				}
 
 				return message.channel.send(`${message.mentions.channels.first()} has been added to the list of (${channelType}) weather channels!`)
 					.catch(console.error);
 			}
 		}
-		else if (args[0] == 'remove' && args.length == 2) {
-			if (message.mentions.channels.size == 0 &&
-			message.mentions.users.size == 0 &&
-			message.mentions.roles.size == 0) {
+		else if (args[0] === 'remove' && args.length === 2) {
+			if (message.mentions.channels.size === 0 &&
+			message.mentions.users.size === 0 &&
+			message.mentions.roles.size === 0) {
 				let status = 0;
 				await weatherConditions.doc(args[1]).get()
 					.then(async snapshot => {
@@ -187,7 +183,7 @@ module.exports = {
 				}
 			}
 
-			if (message.mentions.channels.size == 1 && message.mentions.channels.first().type == 'text') {
+			if (message.mentions.channels.size === 1 && message.mentions.channels.first().type === 'text') {
 				const channelName = message.mentions.channels.first().name;
 
 				let status = 0;
@@ -226,7 +222,7 @@ module.exports = {
 				}
 			}
 		}
-		else if (args[0] == 'remove' && args.length == 4) {
+		else if (args[0] === 'remove' && args.length === 4) {
 			let status = 0;
 			await weatherConditions.doc(args[1]).get()
 				.then(async weatherCondition => {
@@ -251,12 +247,12 @@ module.exports = {
 					return message.reply('that weather condition doesn\'t exist!');
 			}
 		}
-		else if (args[0] == 'describe' && args.length >= 4) {
+		else if (args[0] === 'describe' && args.length >= 4) {
 			let status = 0;
 			await weatherConditions.doc(args[1]).get()
 				.then(async weatherCondition => {
 					if (weatherCondition.exists) {
-						if (args[2] == 'inside' || args[2] == 'outside') {
+						if (args[2] === 'inside' || args[2] === 'outside') {
 							let description = '';
 							for (let i = 3; i < args.length; i++) {
 								description += ` ${args[i]}`;
@@ -297,8 +293,8 @@ module.exports = {
 					return message.reply('that description is already on that weather condition!');
 			}
 		}
-		else if (args[0] == 'list' && args.length == 2) {
-			if (args[1] == 'conditions') {
+		else if (args[0] === 'list' && args.length === 2) {
+			if (args[1] === 'conditions') {
 				let sendMessage = 'Weather conditions: \n';
 				const weatherKeys = [];
 				await weatherConditions.get()
@@ -313,7 +309,7 @@ module.exports = {
 
 				return message.channel.send(sendMessage).catch(console.error);
 			}
-			else if (args[1] == 'channels') {
+			else if (args[1] === 'channels') {
 				let sendMessage = 'Weather channels: \n';
 				const channelKeys = [];
 				await channels.get()
@@ -329,7 +325,7 @@ module.exports = {
 				return message.channel.send(sendMessage).catch(console.error);
 			}
 		}
-		else if (args[0] == 'list' && args.length == 3) {
+		else if (args[0] === 'list' && args.length === 3) {
 			let status = 0;
 			let sendMessage = `Descriptions for ${args[2]} ${args[1]}: \n`;
 			if (args[2] === 'inside' || args[2] === 'outside') {
