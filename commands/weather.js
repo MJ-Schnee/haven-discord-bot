@@ -420,9 +420,7 @@ module.exports = {
 						return client.channels.fetch(worldAnnouncementID)
 							.then((channel) => {
 								channel.send('The weather has been announced!')
-									.catch((error) => {
-										console.error(error);
-									});
+									.catch(console.error);
 
 								const newTime = new Date();
 								const randomHours = Math.random() * 12 + 12;
@@ -432,15 +430,9 @@ module.exports = {
 								timedEvents.doc('auto-send-weather').set({
 									timestamp: newTime,
 								})
-									.then(() => {
-										channel.send('The weather has been announced!')
-											.catch((error) => {
-												console.error(error);
-											});
-									})
 									.catch(error => {
 										console.error(error);
-										channel.send('The weather has been announced!')
+										channel.send('Time update failed, please manually update the time for the next weather change.')
 											.catch(console.error);
 									});
 							});
