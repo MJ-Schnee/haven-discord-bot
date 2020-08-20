@@ -7,6 +7,7 @@ admin.initializeApp({
 	databaseURL: process.env.FIREBASE_DATABASE_URL,
 });
 const database = admin.firestore();
+const later = require('later');
 
 const client = new Discord.Client();
 const channels = database.collection('channels');
@@ -18,10 +19,6 @@ const randomProperty = obj => {
 	const keys = Object.keys(obj);
 	return obj[keys[ keys.length * Math.random() << 0]];
 };
-
-const test = async () => {
-};
-test();
 
 module.exports = {
 	name: 'weather',
@@ -373,60 +370,150 @@ module.exports = {
 
 		return message.reply('invalid arguments for that command');
 	},
-	async announceRandomWeather() {
-		let weatherCondition;
-		await weatherConditions.get()
-			.then(collectionSnapshot => {
-				const collectionSize = collectionSnapshot.size;
-				const conditionIndex = Math.floor(Math.random() * Math.floor(collectionSize));
-				console.log(conditionIndex);
-				let i = 0;
-				collectionSnapshot.forEach(async documentSnapshot => {
-					if (i === conditionIndex) {
-						weatherCondition = documentSnapshot;
-					}
-					else {
-						i++;
-					}
-				});
-			})
-			.catch(console.error);
-		console.log(`Auto selected weather condition: ${weatherCondition.id}`);
+	async setupSchedulers() {
+		const schedule = later.parse.recur().every(5).minute();
 
-		await channels.get()
-			.then(collectionSnapshot => {
-				collectionSnapshot.forEach(async documentSnapshot => {
-					if (await documentSnapshot.data().type === 'inside' || await documentSnapshot.data().type === 'outside') {
-						const weatherDescription = randomProperty(weatherCondition.data()[await documentSnapshot.data().type]);
-						console.log(`Weather Description: ${weatherDescription}`);
-						const channelID = await documentSnapshot.data().id;
-						await client.channels.fetch(channelID)
-							.then(weatherChannel => {
-								weatherChannel.send(weatherDescription)
-									.catch(console.error);
-								console.log(`Auto messaged ${documentSnapshot.id} the ${documentSnapshot.data().type} weather: ${weatherDescription}`);
-							})
-							.catch(async error => {
-								console.error(error);
-								client.channels.fetch(worldAnnouncementID)
-									.then((channel) => {
-										channel.send(`An error occurred trying to message the "${documentSnapshot.id}" channel`)
-											.catch(console.error);
-									});
+		const autoWeatherFunction = async () => {
+			timedEvents.doc('auto-send-weather').get()
+				.then(async autoWeatherSnapshot => {
+					if (await autoWeatherSnapshot.data().timestamp.toDate() <= new Date()) {
+						let weatherCondition;
+						await weatherConditions.get()
+							.then(collectionSnapshot => {
+								const collectionSize = collectionSnapshot.size;
+								const conditionIndex = Math.floor(Math.random() * Math.floor(collectionSize));
+								let i = 0;
+								collectionSnapshot.forEach(async documentSnapshot => {
+									if (i === conditionIndex) {
+										weatherCondition = documentSnapshot;
+									}
+									else {
+										i++;
+									}
+								});
 							})
 							.catch(console.error);
-					}
-				});
-			})
-			.catch(console.error);
+						console.log(`Auto selected weather condition: ${weatherCondition.id}`);
 
-		return client.channels.fetch(worldAnnouncementID)
-			.then((channel) => {
-				channel.send('The weather has been announced!')
-					.catch((error) => {
-						console.error(error);
-					});
-			});
+						await channels.get()
+							.then(collectionSnapshot => {
+								collectionSnapshot.forEach(async documentSnapshot => {
+									if (await documentSnapshot.data().type === 'inside' || await documentSnapshot.data().type === 'outside') {
+										const weatherDescription = randomProperty(weatherCondition.data()[await documentSnapshot.data().type]);
+										const channelID = await documentSnapshot.data().id;
+										await client.channels.fetch(channelID)
+											.then(weatherChannel => {
+												weatherChannel.send(weatherDescription)
+													.catch(console.error);
+												console.log(`Auto messaged ${documentSnapshot.id} the ${documentSnapshot.data().type} weather: ${weatherDescription}`);
+											})
+											.catch(async error => {
+												console.error(error);
+												client.channels.fetch(worldAnnouncementID)
+													.then((channel) => {
+														channel.send(`An error occurred trying to message the "${documentSnapshot.id}" channel`)
+															.catch(console.error);
+													});
+											})
+											.catch(console.error);
+									}
+								});
+							})
+							.catch(console.error);
+
+						return client.channels.fetch(worldAnnouncementID)
+							.then((channel) => {
+								channel.send('The weather has been announced!')
+									.catch((error) => {
+										console.error(error);
+									});
+
+								const newTime = new Date();
+								const randomHours = Math.random() * 12 + 12;
+								console.log(`Announcing new weather in ${randomHours} hours`);
+								newTime.setHours(newTime.getHours() + randomHours);
+
+								timedEvents.doc('auto-send-weather').set({
+									timestamp: newTime,
+								})
+									.then(() => {
+										channel.send('The weather has been announced!')
+											.catch((error) => {
+												console.error(error);
+											});
+									})
+									.catch(error => {
+										console.error(error);
+										channel.send('The weather has been announced!')
+											.catch(console.error);
+									});
+							});
+					}
+				})
+				.catch(console.error);
+
+		};
+
+		const autoSeasonFunction = async () => {
+			timedEvents.doc('auto-send-season').get()
+				.then(async autoSeasonSnapshot => {
+					client.channels.fetch(worldAnnouncementID)
+						.then(async channel => {
+							const timestamp = await autoSeasonSnapshot.data().timestamp.toDate();
+							const today = new Date();
+
+							if (timestamp < today) {
+								const nextSeason = await autoSeasonSnapshot.data().nextSeason;
+								const nextDate = new Date();
+								nextDate.setDate(15);
+								nextDate.setHours(0);
+								switch (nextSeason) {
+									case 'Spring':
+										channel.send('The season has changed to Spring')
+											.catch(console.error);
+										nextDate.setMonth(5);
+										console.log(`Next season: Summer\nNext Date: ${nextDate}\n`);
+										return await timedEvents.doc('auto-send-season').set({
+											timestamp: nextDate,
+											nextSeason: 'Summer',
+										});
+									case 'Summer':
+										channel.send('The season has changed to Summer')
+											.catch(console.error);
+										nextDate.setMonth(8);
+										console.log(`Next season: Autumn\nNext Date: ${nextDate}\n`);
+										return await timedEvents.doc('auto-send-season').set({
+											timestamp: nextDate,
+											nextSeason: 'Autumn',
+										});
+									case 'Autumn':
+										channel.send('The season has changed to Autumn')
+											.catch(console.error);
+										nextDate.setMonth(11);
+										console.log(`Next season: Winter\nNextDate: ${nextDate}\n`);
+										return await timedEvents.doc('auto-send-season').set({
+											timestamp: nextDate,
+											nextSeason: 'Winter',
+										});
+									case 'Winter':
+										channel.send('The season has changed to Winter')
+											.catch(console.error);
+										nextDate.setMonth(2);
+										nextDate.setFullYear(nextDate.getFullYear() + 1);
+										console.log(`Next season: Spring\nNext Date: ${nextDate}\n`);
+										return await timedEvents.doc('auto-send-season').set({
+											timestamp: nextDate,
+											nextSeason: 'Spring',
+										});
+								}
+							}
+						});
+				});
+
+		};
+
+		later.setInterval(autoWeatherFunction, schedule);
+		later.setInterval(autoSeasonFunction, schedule);
 	},
 };
 

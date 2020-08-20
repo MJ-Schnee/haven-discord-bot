@@ -21,7 +21,8 @@
   "dependencies": {
     "discord.js": "^12.2.0",
     "dotenv": "^8.2.0",
-    "firebase-admin": "^9.0.0"
+    "firebase-admin": "^9.0.0",
+    "later": "^1.2.0"
   },
   "devDependencies": {
     "eslint": "^7.6.0"
